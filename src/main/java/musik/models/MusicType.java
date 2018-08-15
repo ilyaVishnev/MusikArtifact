@@ -1,12 +1,13 @@
 package musik.models;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MusicType {
 
     private int id;
     private String type;
-    private List<Integer> usersId;
+    private List<Integer> usersId = new ArrayList<>();
 
     public void setId(int id) {
         this.id = id;

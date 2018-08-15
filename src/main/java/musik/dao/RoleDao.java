@@ -15,11 +15,9 @@ public class RoleDao {
 
     public void create(Role role) {
         try (Connection connection = source.getConnection();
-             Statement stmt = connection.createStatement();
+             PreparedStatement stmt = connection.prepareStatement(String.format("insert into roles (id,role) values(%d,%s)", role.getId(), role.getRole()));
         ) {
-            connection.setAutoCommit(false);
-            stmt.addBatch(String.format("insert into roles (id,role) values(%d,%s)", role.getId(), role.getRole()));
-            stmt.executeBatch();
+            stmt.executeUpdate();
             connection.commit();
         } catch (SQLException ex) {
             log.info(ex.getMessage());
@@ -28,12 +26,9 @@ public class RoleDao {
 
     public void edit(Role role) {
         try (Connection connection = source.getConnection();
-             Statement stmt = connection.createStatement();
+             PreparedStatement stmt = connection.prepareStatement(String.format("update roles set role=%s where id = %d", role.getRole(), role.getId()));
         ) {
-            connection.setAutoCommit(false);
-            stmt.addBatch(String.format("update roles set role=%s where id = %d", role.getRole(), role.getId()));
-            stmt.executeBatch();
-            connection.commit();
+            stmt.executeUpdate();
         } catch (SQLException ex) {
             log.info(ex.getMessage());
         }
@@ -41,12 +36,9 @@ public class RoleDao {
 
     public void delete(Role role) {
         try (Connection connection = source.getConnection();
-             Statement stmt = connection.createStatement();
+             PreparedStatement stmt = connection.prepareStatement(String.format("delete from roles where id = %d", role.getId()));
         ) {
-            connection.setAutoCommit(false);
-            stmt.addBatch(String.format("delete from roles where id = %d", role.getId()));
-            stmt.executeBatch();
-            connection.commit();
+            stmt.executeUpdate();
         } catch (SQLException ex) {
             log.info(ex.getMessage());
         }
@@ -57,20 +49,15 @@ public class RoleDao {
         try (Connection connection = source.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(String.format("select * from roles where roles.id=%d", index));
              PreparedStatement pstmt2 = connection.prepareStatement(String.format("select id from users where id_roles=%d", index));
+             ResultSet resultSet = pstmt.executeQuery();
+             ResultSet resultSet2 = pstmt2.executeQuery();
         ) {
-            try (ResultSet resultSet = pstmt.executeQuery();
-                 ResultSet resultSet2 = pstmt2.executeQuery();
-            ) {
-                while (resultSet.next()) {
-                    role.setId(index);
-                    role.setRole(resultSet.getString(2));
-                }
-                while (resultSet2.next()) {
-                    role.getUsers().add(resultSet.getInt(1));
-                }
-            } catch (Exception e) {
-                connection.rollback();
-                log.info(e.getMessage());
+            while (resultSet.next()) {
+                role.setId(index);
+                role.setRole(resultSet.getString(2));
+            }
+            while (resultSet2.next()) {
+                role.getUsers().add(resultSet.getInt(1));
             }
         } catch (SQLException ex) {
             log.info(ex.getMessage());
@@ -81,16 +68,10 @@ public class RoleDao {
     public List getAll() {
         List<Role> rolesList = new ArrayList<>();
         try (Connection connection = source.getConnection();
-             PreparedStatement pstmt = connection.prepareStatement("select id from roles")) {
-
-            try (ResultSet resultSet = pstmt.executeQuery();
-            ) {
-                while (resultSet.next()) {
-                    rolesList.add(this.getRoleById(resultSet.getInt(1)));
-                }
-            } catch (Exception e) {
-                connection.rollback();
-                log.info(e.getMessage());
+             PreparedStatement pstmt = connection.prepareStatement("select id from roles");
+             ResultSet resultSet = pstmt.executeQuery();) {
+            while (resultSet.next()) {
+                rolesList.add(this.getRoleById(resultSet.getInt(1)));
             }
         } catch (SQLException ex) {
             log.info(ex.getMessage());

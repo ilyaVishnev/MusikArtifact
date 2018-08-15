@@ -17,12 +17,9 @@ public class MusicTypeDao {
 
     public void create(MusicType musicType) {
         try (Connection connection = source.getConnection();
-             Statement stmt = connection.createStatement();
+             PreparedStatement stmt = connection.prepareStatement(String.format("insert into musictypes (id,type) values(%d,%s)", musicType.getId(), musicType.getType()));
         ) {
-            connection.setAutoCommit(false);
-            stmt.addBatch(String.format("insert into musictypes (id,type) values(%d,%s)", musicType.getId(), musicType.getType()));
-            stmt.executeBatch();
-            connection.commit();
+            stmt.executeUpdate();
         } catch (SQLException ex) {
             log.info(ex.getMessage());
         }
@@ -30,12 +27,9 @@ public class MusicTypeDao {
 
     public void edit(MusicType musicType) {
         try (Connection connection = source.getConnection();
-             Statement stmt = connection.createStatement();
+             PreparedStatement stmt = connection.prepareStatement(String.format("update musictypes set type=%s where id = %d", musicType.getType(), musicType.getId()));
         ) {
-            connection.setAutoCommit(false);
-            stmt.addBatch(String.format("update musictypes set type=%s where id = %d", musicType.getType(), musicType.getId()));
-            stmt.executeBatch();
-            connection.commit();
+            stmt.executeUpdate();
         } catch (SQLException ex) {
             log.info(ex.getMessage());
         }
@@ -43,12 +37,9 @@ public class MusicTypeDao {
 
     public void delete(MusicType musicType) {
         try (Connection connection = source.getConnection();
-             Statement stmt = connection.createStatement();
+             PreparedStatement stmt = connection.prepareStatement(String.format("delete from musictypes where id = %d", musicType.getId()));
         ) {
-            connection.setAutoCommit(false);
-            stmt.addBatch(String.format("delete from musictypes where id = %d", musicType.getId()));
-            stmt.executeBatch();
-            connection.commit();
+            stmt.executeUpdate();
         } catch (SQLException ex) {
             log.info(ex.getMessage());
         }
@@ -59,20 +50,15 @@ public class MusicTypeDao {
         try (Connection connection = source.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(String.format("select * from musictypes where musictypes.id=%d", index));
              PreparedStatement pstmt2 = connection.prepareStatement(String.format("select id_user from userstypes where id_type=%d", index));
+             ResultSet resultSet = pstmt.executeQuery();
+             ResultSet resultSet2 = pstmt2.executeQuery();
         ) {
-            try (ResultSet resultSet = pstmt.executeQuery();
-                 ResultSet resultSet2 = pstmt2.executeQuery();
-            ) {
-                while (resultSet.next()) {
-                    musicType.setId(index);
-                    musicType.setType(resultSet.getString(2));
-                }
-                while (resultSet2.next()) {
-                    musicType.getUsers().add(resultSet2.getInt(1));
-                }
-            } catch (Exception e) {
-                connection.rollback();
-                log.info(e.getMessage());
+            while (resultSet.next()) {
+                musicType.setId(index);
+                musicType.setType(resultSet.getString(2));
+            }
+            while (resultSet2.next()) {
+                musicType.getUsers().add(resultSet2.getInt(1));
             }
         } catch (SQLException ex) {
             log.info(ex.getMessage());
@@ -83,16 +69,10 @@ public class MusicTypeDao {
     public List getAll() {
         List<MusicType> typesList = new ArrayList<>();
         try (Connection connection = source.getConnection();
-             PreparedStatement pstmt = connection.prepareStatement("select id from musictypes")) {
-
-            try (ResultSet resultSet = pstmt.executeQuery();
-            ) {
-                while (resultSet.next()) {
-                    typesList.add(this.getTypeById(resultSet.getInt(1)));
-                }
-            } catch (Exception e) {
-                connection.rollback();
-                log.info(e.getMessage());
+             PreparedStatement pstmt = connection.prepareStatement("select id from musictypes");
+             ResultSet resultSet = pstmt.executeQuery();) {
+            while (resultSet.next()) {
+                typesList.add(this.getTypeById(resultSet.getInt(1)));
             }
         } catch (SQLException ex) {
             log.info(ex.getMessage());

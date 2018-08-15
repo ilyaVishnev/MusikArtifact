@@ -59,20 +59,15 @@ public class UserRepository {
             try (Connection connection = source.getConnection();
                  PreparedStatement pstmt = connection.prepareStatement(String.format("select * from musictypes where id=%d", id));
                  PreparedStatement pstmt2 = connection.prepareStatement(String.format("select id_user from userstypes where id_type=%d", id));
+                 ResultSet resultSet = pstmt.executeQuery();
+                 ResultSet resultSet2 = pstmt2.executeQuery();
             ) {
-                try (ResultSet resultSet = pstmt.executeQuery();
-                     ResultSet resultSet2 = pstmt2.executeQuery();
-                ) {
-                    while (resultSet.next()) {
-                        musicType.setId(resultSet.getInt(1));
-                        musicType.setType(resultSet.getString(2));
-                    }
-                    while (resultSet2.next()) {
-                        musicType.getUsers().add(resultSet2.getInt(1));
-                    }
-                } catch (Exception e) {
-                    connection.rollback();
-                    log.info(e.getMessage());
+                while (resultSet.next()) {
+                    musicType.setId(resultSet.getInt(1));
+                    musicType.setType(resultSet.getString(2));
+                }
+                while (resultSet2.next()) {
+                    musicType.getUsers().add(resultSet2.getInt(1));
                 }
             } catch (SQLException ex) {
                 log.info(ex.getMessage());
@@ -95,16 +90,11 @@ public class UserRepository {
         User user = null;
         try (Connection connection = source.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(String.format("select id from users where id_roles=%d", role.getId()));
+             ResultSet resultSet = pstmt.executeQuery();
         ) {
-            try (ResultSet resultSet = pstmt.executeQuery();
-            ) {
-                while (resultSet.next()) {
-                    user = this.getUserById(resultSet.getInt(1));
-                    userList.add(user);
-                }
-            } catch (Exception e) {
-                connection.rollback();
-                log.info(e.getMessage());
+            while (resultSet.next()) {
+                user = this.getUserById(resultSet.getInt(1));
+                userList.add(user);
             }
         } catch (SQLException ex) {
             log.info(ex.getMessage());
@@ -119,16 +109,11 @@ public class UserRepository {
         User user = null;
         try (Connection connection = source.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(String.format("select id_user from userstypes where id_type=%d", musicType.getId()));
+             ResultSet resultSet = pstmt.executeQuery();
         ) {
-            try (ResultSet resultSet = pstmt.executeQuery();
-            ) {
-                while (resultSet.next()) {
-                    user = this.getUserById(resultSet.getInt(1));
-                    userList.add(user);
-                }
-            } catch (Exception e) {
-                connection.rollback();
-                log.info(e.getMessage());
+            while (resultSet.next()) {
+                user = this.getUserById(resultSet.getInt(1));
+                userList.add(user);
             }
         } catch (SQLException ex) {
             log.info(ex.getMessage());
@@ -140,15 +125,10 @@ public class UserRepository {
         List<Integer> listIdTypes = new ArrayList<>();
         try (Connection connection = source.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(String.format("select id_type from userstypes where id_user=%d", user.getId()));
+             ResultSet resultSet = pstmt.executeQuery();
         ) {
-            try (ResultSet resultSet = pstmt.executeQuery();
-            ) {
-                while (resultSet.next()) {
-                    listIdTypes.add(resultSet.getInt(1));
-                }
-            } catch (Exception e) {
-                connection.rollback();
-                log.info(e.getMessage());
+            while (resultSet.next()) {
+                listIdTypes.add(resultSet.getInt(1));
             }
         } catch (SQLException ex) {
             log.info(ex.getMessage());
@@ -161,27 +141,22 @@ public class UserRepository {
         try (Connection connection = source.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(String.format("select users.login,users.password,users.name,adress.id,adress.adress,users.id_roles from users inner join adress on users.id=adress.id_user where users.id=%d", index));
              PreparedStatement pstmt2 = connection.prepareStatement(String.format("select id_type from userstypes where id_user=%d", index));
+             ResultSet resultSet = pstmt.executeQuery();
+             ResultSet resultSet2 = pstmt2.executeQuery();
         ) {
-            try (ResultSet resultSet = pstmt.executeQuery();
-                 ResultSet resultSet2 = pstmt2.executeQuery();
-            ) {
-                while (resultSet.next()) {
-                    user.setId(index);
-                    user.setLogin(resultSet.getString(1));
-                    user.setPassword(resultSet.getString(2));
-                    user.setName(resultSet.getString(3));
-                    Address address = new Address();
-                    address.setId(resultSet.getInt(4));
-                    address.setAddress(resultSet.getString(5));
-                    user.setAddress(address);
-                    user.setId_role(resultSet.getInt(6));
-                }
-                while (resultSet2.next()) {
-                    user.getId_musicType().add(resultSet2.getInt(1));
-                }
-            } catch (Exception e) {
-                connection.rollback();
-                log.info(e.getMessage());
+            while (resultSet.next()) {
+                user.setId(index);
+                user.setLogin(resultSet.getString(1));
+                user.setPassword(resultSet.getString(2));
+                user.setName(resultSet.getString(3));
+                Address address = new Address();
+                address.setId(resultSet.getInt(4));
+                address.setAddress(resultSet.getString(5));
+                user.setAddress(address);
+                user.setId_role(resultSet.getInt(6));
+            }
+            while (resultSet2.next()) {
+                user.getId_musicType().add(resultSet2.getInt(1));
             }
         } catch (SQLException ex) {
             log.info(ex.getMessage());
@@ -193,17 +168,12 @@ public class UserRepository {
         Address address = new Address();
         try (Connection connection = source.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(String.format("select * from adress where id_user=%d", user.getId()));
+             ResultSet resultSet = pstmt.executeQuery();
         ) {
-            try (ResultSet resultSet = pstmt.executeQuery();
-            ) {
-                while (resultSet.next()) {
-                    address.setId(resultSet.getInt(1));
-                    address.setAddress(resultSet.getString(2));
-                    address.setIdUser(resultSet.getInt(3));
-                }
-            } catch (Exception e) {
-                connection.rollback();
-                log.info(e.getMessage());
+            while (resultSet.next()) {
+                address.setId(resultSet.getInt(1));
+                address.setAddress(resultSet.getString(2));
+                address.setIdUser(resultSet.getInt(3));
             }
         } catch (SQLException ex) {
             log.info(ex.getMessage());
@@ -216,20 +186,15 @@ public class UserRepository {
         try (Connection connection = source.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(String.format("select * from roles where id=(select id_roles from users where id =%d)", user.getId()));
              PreparedStatement pstmt2 = connection.prepareStatement(String.format("select id from users where id_roles=(select id_roles from users where id =%d)", user.getId()));
+             ResultSet resultSet = pstmt.executeQuery();
+             ResultSet resultSet2 = pstmt2.executeQuery();
         ) {
-            try (ResultSet resultSet = pstmt.executeQuery();
-                 ResultSet resultSet2 = pstmt2.executeQuery();
-            ) {
-                while (resultSet.next()) {
-                    role.setId(resultSet.getInt(1));
-                    role.setRole(resultSet.getString(2));
-                }
-                while (resultSet2.next()) {
-                    role.getUsers().add(resultSet2.getInt(1));
-                }
-            } catch (Exception e) {
-                connection.rollback();
-                log.info(e.getMessage());
+            while (resultSet.next()) {
+                role.setId(resultSet.getInt(1));
+                role.setRole(resultSet.getString(2));
+            }
+            while (resultSet2.next()) {
+                role.getUsers().add(resultSet2.getInt(1));
             }
         } catch (SQLException ex) {
             log.info(ex.getMessage());
